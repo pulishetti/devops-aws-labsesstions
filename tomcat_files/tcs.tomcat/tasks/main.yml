@@ -1,0 +1,58 @@
+---
+# tasks file for tcs.tomcat
+- name: Install Java 
+  yum: 
+    name: java-1.7.0-openjdk-devel
+    state: present
+- name: add tomcat group
+  group: 
+    name: tomcat
+    state: present
+- name: add tomcat user_name
+  user:
+    name: tomcat
+    group: tomcat
+    home: /usr/share/tomcat 
+    createhome: no 
+  become_method: sudo
+- name: download tomcat
+  get_url:
+    url: http://www-us.apache.org/dist/tomcat/tomcat-7/v7.0.79/bin/apache-tomcat-7.0.79.tar.gz
+    dest: /home/ansible/apache-tomcat-7.0.79.tar.gz
+
+- name: untar
+  command: tar -xvf /home/ansible/apache-tomcat-7.0.79.tar.gz -C /opt/ creates=/opt/apache-tomcat-7.0.79
+
+
+- name: Change ownership of Tomcat installation
+  file: path=/usr/share/tomcat/ owner=tomcat group=tomcat state=directory recurse=yes
+
+
+
+- name: Change ownership of apache-download Directory
+  file: path=/opt/apache-tomcat-7.0.79 owner=tomcat group=tomcat state=directory recurse=yes
+
+
+
+- name: Symlink install directory
+  file: src=/opt/apache-tomcat-7.0.79/ path=/usr/share/tomcat/ state=link
+
+
+
+
+- name: admin pkgs
+  yum : name={{item}} state=present
+  with_items:
+    - tomcat-webapps 
+    - tomcat-admin-webapps 
+
+
+- name: Configure Tomcat users
+  template: src=tomcat-users.xml dest=/usr/share/tomcat/conf/
+  notify: restart tomcat
+
+- name: Install Tomcat init script
+  copy: src=tomcat-initscript.sh dest=/etc/init.d/tomcat mode=0755
+- name: Start Tomcat
+  service: name=tomcat state=started enabled=yes
+

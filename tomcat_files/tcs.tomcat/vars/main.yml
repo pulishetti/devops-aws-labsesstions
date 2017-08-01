@@ -1,0 +1,5 @@
+---
+# vars file for tcs.tomcat
+
+admin_username: admin
+admin_password: admin123

@@ -2,11 +2,10 @@
 # tasks file for tomcat.openmrs
 - name: download and install epel
   get_url:
-      url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-      dest: tmp/epel-release-latest-7.noarch.rpm
+    url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    dest: /tmp/epel-release-latest-7.noarch.rpm
 - name: install repo
-  command: rpm -ivh /tmp/epel-release-latest-6.noarch.rpm 
-  creates:  /etc/yum.repos.d/epel.repo
+  command: rpm -ivh /tmp/epel-release-latest-6.noarch.rpm  creates=/etc/yum.repos.d/epel.repo
 - name: insatll java pkg
   yum:
     name: java-1.7.0-openjdk
@@ -15,6 +14,21 @@
   yum:
      name: tomcat
      state: present
+- name: config tomcat conf
+  template:
+    src: tomcat-conf.j2 
+    dest: /usr/share/tomcat/conf/tomcat.conf
+- name: insatlling pkgs
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+    - tomcat-webapps 
+    - tomcat-admin-webapps
+- name: config user 
+  template:
+    src: tomcat-user.j2
+    dest: /usr/share/tomcat/conf/tomcat-users.xml
 - name: service start
   service:
     name: tomcat
